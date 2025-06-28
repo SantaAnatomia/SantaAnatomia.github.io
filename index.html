@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz de Anatomía - Alumno</title>
+  <style>
+    /* Estilos base - revertidos a la versión anterior */
+    body {
+      font-family: 'Segoe UI', sans-serif; /* Fuente original */
+      background: #f2f4f8; /* Fondo original */
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.8em;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 20px;
+      gap: 20px; /* Espacio entre contenedores */
+    }
+
+    .image-container {
+      flex: 1;
+      min-width: 300px;
+      text-align: center;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .image-container img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .form-container {
+      flex: 1;
+      min-width: 300px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+      margin-bottom: 1.2em;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.4em;
+      color: #2c3e50;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 0.6em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f9f9f9;
+      font-size: 1em;
+    }
+
+    /* Estilos del feedback - MANTENIDOS de la versión anterior */
+    .feedback {
+      margin-top: 15px;
+      font-weight: bold;
+      padding: 12px; /* Añadido padding para que el feedback sea más notorio */
+      border-radius: 8px; /* Añadido border-radius */
+      text-align: center; /* Centrar texto */
+      font-size: 1.1em; /* Un poco más grande */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra sutil */
+    }
+
+    .correcto {
+      color: #27ae60; /* Verde más vibrante */
+      background-color: #e6ffee; /* Fondo verde claro */
+      border: 1px solid #27ae60; /* Borde verde */
+    }
+
+    .incorrecto {
+      color: #c0392b; /* Rojo más vibrante */
+      background-color: #ffe6e6; /* Fondo rojo claro */
+      border: 1px solid #c0392b; /* Borde rojo */
+    }
+
+    /* Botones */
+    button {
+      padding: 10px 20px;
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-top: 10px;
+      width: 100%; /* Para que los botones ocupen todo el ancho */
+    }
+
+    button:hover {
+      background-color: #1f6391;
+    }
+
+    /* Estilo del contenedor de carga de archivo */
+    #fileInputContainer {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #e9ecef;
+        border-radius: 8px;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+    #fileInput {
+        width: calc(100% - 22px); /* Adjust for padding and border */
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+    #questionSelectorGroup {
+        margin-top: 15px;
+    }
+    
+    /* Estilos para el Modo Experto */
+    .mode-toggle-container {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+    .mode-toggle-container button {
+        flex-grow: 1;
+        background-color: #34495e; /* Un color distinto para los botones de modo */
+        width: auto; /* Ancho automático para que se ajusten al flex */
+    }
+    .mode-toggle-container button.active {
+        background-color: #2980b9; /* Color activo */
+    }
+    .mode-toggle-container button:hover {
+        background-color: #1f6391;
+    }
+
+    /* Contenedor de navegación */
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .navigation-buttons button {
+        flex-grow: 1;
+        width: auto; /* Ancho automático para que se ajusten */
+        background-color: #555; /* Otro color para diferenciar */
+    }
+    .navigation-buttons button:hover {
+        background-color: #333;
+    }
+
+    #questionCounter {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .mode-toggle-container button, .navigation-buttons button {
+        font-size: 0.9em;
+        padding: 8px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>🧠 Quiz de Anatomía - Modo Alumno</header>
+
+  <div class="container">
+    <div class="image-container">
+      <div id="fileInputContainer">
+          <label for="fileInput">Cargar archivo de preguntas (.json):</label>
+          <input type="file" id="fileInput" accept=".json" onchange="loadQuestionsFromFile()">
+      </div>
+      <img id="quiz-image" src="" alt="Imagen médica" />
+      <span id="questionCounter"></span>
+      <div class="mode-toggle-container">
+        <button id="normalModeBtn" class="active" onclick="setMode('normal')">Modo Normal</button>
+        <button id="expertModeBtn" onclick="setMode('expert')">Modo Experto</button>
+      </div>
+      <div id="questionSelectorGroup" class="form-group">
+        <label for="questionSelector">Seleccionar pregunta:</label>
+        <select id="questionSelector" onchange="jumpToQuestion()"></select>
+      </div>
+      <div class="navigation-buttons">
+          <button id="prevQuestionBtn" onclick="goToPreviousQuestion()">Anterior</button>
+          <button id="nextQuestionBtn" onclick="goToNextQuestion()">Siguiente</button>
+      </div>
+    </div>
+
+    <div class="form-container">
+      <div class="form-group">
+        <label for="tecnica">Técnica</label>
+        <select id="tecnica" onchange="updateCaracteristicas()">
+          <option value="">Selecciona</option>
+          <option>Radiografía</option>
+          <option>TC</option>
+          <option>RM</option>
+          <option>Eco</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label id="caracteristica-label" for="caracteristica">Característica</label>
+        <select id="caracteristica"></select>
+      </div>
+
+      <div class="form-group" id="corte-group">
+        <label for="corte">Corte</label>
+        <select id="corte">
+          <option value="">Selecciona</option>
+          </select>
+      </div>
+
+      <div class="form-group">
+        <label for="region">Región anatómica</label>
+        <select id="region" onchange="updateSubregion()">
+          <option value="">Selecciona</option>
+          <option>Cráneo</option>
+          <option>Tórax</option>
+          <option>Abdomen</option>
+          <option>Pelvis</option>
+          <option>Miembros superiores</option>
+          <option>Miembros inferiores</option>
+          <option>Angio</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="subregion-group" style="display:none">
+        <label for="subregion">Subregión</label>
+        <select id="subregion">
+          <option value="">Selecciona</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="organo-group" style="display:none">
+        <label for="organo">Órgano</label>
+        <select id="organo">
+          <option value="">Selecciona</option>
+          <option>Tiroides</option>
+          <option>Corazón</option>
+          <option>Musculoesquelética</option>
+          <option>Hígado</option>
+          <option>Páncreas</option>
+          <option>Riñón derecho</option>
+          <option>Riñón izquierdo</option>
+          <option>Aparato reproductor femenino</option>
+          <option>Aparato reproductor masculino</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="contraste">Contraste</label>
+        <select id="contraste">
+          <option value="">Selecciona</option>
+          <option>Sí</option>
+          <option>No</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="esPatologica">¿Es patológica?</label>
+        <select id="esPatologica">
+          <option value="">Selecciona</option>
+          <option>Sí</option>
+          <option>No</option>
+        </select>
+      </div>
+
+      <button onclick="comprobar()">Comprobar</button>
+      <div id="feedback" class="feedback"></div>
+    </div>
+  </div>
+
+  <script>
+    let preguntas = [];
+    let currentIndex = 0; // Para Modo Normal
+    let isExpertMode = false;
+    let shuffledIndices = []; // Para Modo Experto
+    let shuffledIndexPointer = 0; // Para Modo Experto
+    let score = 0; // Puntuación del quiz
+    let totalAnswered = 0; // Total de preguntas intentadas
+
+    const quizImage = document.getElementById("quiz-image");
+    const tecnicaSelect = document.getElementById("tecnica");
+    const caracteristicaSelect = document.getElementById("caracteristica");
+    const caracteristicaLabel = document.getElementById("caracteristica-label");
+    const corteSelect = document.getElementById("corte");
+    const corteGroup = document.getElementById("corte-group");
+    const regionSelect = document.getElementById("region");
+    const subregionSelect = document.getElementById("subregion");
+    const subregionGroup = document.getElementById("subregion-group");
+    const organoSelect = document.getElementById("organo");
+    const organoGroup = document.getElementById("organo-group");
+    const contrasteSelect = document.getElementById("contraste");
+    const esPatologicaSelect = document.getElementById("esPatologica");
+    const feedbackDiv = document.getElementById("feedback");
+    const fileInput = document.getElementById("fileInput");
+    const questionSelector = document.getElementById("questionSelector");
+    const questionSelectorGroup = document.getElementById("questionSelectorGroup");
+    const normalModeBtn = document.getElementById("normalModeBtn");
+    const expertModeBtn = document.getElementById("expertModeBtn");
+    const questionCounterSpan = document.getElementById("questionCounter"); // Nuevo
+    const prevQuestionBtn = document.getElementById("prevQuestionBtn"); // Nuevo
+    const nextQuestionBtn = document.getElementById("nextQuestionBtn"); // Nuevo
+
+
+    const opcionesCaracteristicas = {
+      "Radiografía": ["AP", "PA", "AP/PA", "Oblicua", "Lateral", "Ninguna de los anteriores"],
+      "TC": ["Ósea", "Pulmonar", "Cerebral", "Mediastino", "Partes blandas", "Abdomen"],
+      "RM": ["Potenciada en T1", "Potenciada en T2", "Ninguna de los anteriores"],
+      "Eco": ["A", "B", "D", "M", "Ninguna de los anteriores"]
+    };
+
+    const etiquetasCaracteristicas = {
+      "Radiografía": "Proyección",
+      "TC": "Ventana",
+      "RM": "Potenciación",
+      "Eco": "Modo"
+    };
+
+    const opcionesCorteDefault = ["Axial", "Coronal", "Sagital", "Oblicuo", "Ninguna de los anteriores"];
+    const opcionesCorteEco = ["Longitudinal", "Transversal", "Ninguna de las anteriores"];
+
+
+    const opcionesSubregionMiembrosSuperiores = ["Mano", "Muñeca", "Antebrazo", "Codo", "Brazo", "Hombro"];
+    const opcionesSubregionMiembrosInferiores = ["Pie", "Tobillo", "Pierna", "Rodilla", "Muslo", "Cadera"];
+
+    // Función para mezclar un array (Fisher-Yates shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // Función para establecer el modo (normal o experto)
+    function setMode(mode) {
+        if (preguntas.length === 0) {
+            alert("Por favor, carga preguntas primero para cambiar de modo.");
+            return;
+        }
+
+        isExpertMode = (mode === 'expert');
+        normalModeBtn.classList.toggle('active', !isExpertMode);
+        expertModeBtn.classList.toggle('active', isExpertMode);
+
+        if (isExpertMode) {
+            // Preparar para modo experto
+            shuffledIndices = Array.from({length: preguntas.length}, (_, i) => i);
+            shuffleArray(shuffledIndices);
+            shuffledIndexPointer = 0;
+            questionSelectorGroup.style.display = "none"; // Ocultar selector en modo experto
+            prevQuestionBtn.style.display = "none"; // Ocultar navegación en modo experto
+            nextQuestionBtn.style.display = "none"; // Ocultar navegación en modo experto
+        } else {
+            // Resetear para modo normal
+            currentIndex = 0;
+            questionSelectorGroup.style.display = "block"; // Mostrar selector en modo normal
+            prevQuestionBtn.style.display = "block"; // Mostrar navegación en modo normal
+            nextQuestionBtn.style.display = "block"; // Mostrar navegación en modo normal
+        }
+        
+        // Resetear puntuación y contador al cambiar de modo
+        score = 0;
+        totalAnswered = 0;
+        
+        loadPregunta(); // Cargar la primera pregunta del nuevo modo
+        if (!isExpertMode) { // Solo actualizar el selector si volvemos a modo normal
+          populateQuestionSelector(); 
+        }
+    }
+
+    function loadQuestionsFromFile() {
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Por favor, selecciona un archivo JSON.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          preguntas = JSON.parse(e.target.result);
+          if (!Array.isArray(preguntas) || preguntas.length === 0) {
+            throw new Error("El archivo JSON no contiene un array de preguntas válido o está vacío.");
+          }
+          alert(`Se han cargado ${preguntas.length} preguntas.`);
+          
+          // Resetear ambos punteros y modos
+          currentIndex = 0; 
+          shuffledIndexPointer = 0;
+          shuffledIndices = []; // Limpiar antes de (re)generar
+          
+          // Resetear puntuación y contador al cargar nuevas preguntas
+          score = 0;
+          totalAnswered = 0;
+
+          // Por defecto al cargar, empezar en modo normal
+          setMode('normal'); // Esto manejará la visibilidad de los botones y selectores
+          
+          populateQuestionSelector(); // Llenar el selector de preguntas
+          loadPregunta(); // Cargar la primera pregunta
+          
+          // Habilitar botones de modo una vez que hay preguntas cargadas
+          normalModeBtn.disabled = false;
+          expertModeBtn.disabled = false;
+
+        } catch (error) {
+          alert("Error al cargar el archivo JSON: " + error.message);
+          console.error("Error parsing JSON:", error);
+          preguntas = [];
+          questionSelector.innerHTML = "<option value=''>Selecciona</option>";
+          questionSelectorGroup.style.display = "none";
+          quizImage.src = "";
+          questionCounterSpan.innerText = ""; // Limpiar contador
+          
+          // Deshabilitar botones de modo si no hay preguntas
+          normalModeBtn.disabled = true;
+          expertModeBtn.disabled = true;
+          prevQuestionBtn.style.display = "none";
+          nextQuestionBtn.style.display = "none";
+        }
+      };
+      reader.onerror = function() {
+        alert("No se pudo leer el archivo.");
+      };
+      reader.readAsText(file);
+    }
+
+    function populateQuestionSelector() {
+      questionSelector.innerHTML = "<option value=''>Ir a la pregunta...</option>";
+      preguntas.forEach((_, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.text = `Pregunta ${index + 1}`;
+        questionSelector.add(option);
+      });
+      if (!isExpertMode) {
+        questionSelector.value = currentIndex;
+      } else {
+        questionSelector.value = ""; // No seleccionar nada si estamos en modo experto
+      }
+    }
+
+    function jumpToQuestion() {
+        if (isExpertMode) return; // No permitir saltar en modo experto
+
+        const selectedIndex = parseInt(questionSelector.value);
+        if (!isNaN(selectedIndex) && selectedIndex >= 0 && selectedIndex < preguntas.length) {
+            currentIndex = selectedIndex;
+            loadPregunta();
+        } else if (questionSelector.value === "") {
+            feedbackDiv.innerText = "";
+            feedbackDiv.className = "feedback";
+        }
+    }
+
+
+    function loadPregunta() {
+      if (preguntas.length === 0) {
+        quizImage.src = "";
+        feedbackDiv.innerText = "Por favor, carga un archivo de preguntas.";
+        feedbackDiv.className = "feedback incorrecto";
+        // Deshabilitar selectores si no hay preguntas
+        tecnicaSelect.disabled = true;
+        caracteristicaSelect.disabled = true;
+        corteSelect.disabled = true;
+        regionSelect.disabled = true;
+        subregionSelect.disabled = true;
+        organoSelect.disabled = true;
+        contrasteSelect.disabled = true;
+        esPatologicaSelect.disabled = true;
+        questionCounterSpan.innerText = ""; // Limpiar contador
+        return;
+      }
+
+      // Habilitar selectores
+      tecnicaSelect.disabled = false;
+      caracteristicaSelect.disabled = false;
+      corteSelect.disabled = false;
+      regionSelect.disabled = false;
+      subregionSelect.disabled = false;
+      organoSelect.disabled = false;
+      contrasteSelect.disabled = false;
+      esPatologicaSelect.disabled = false;
+
+
+      let p;
+      let currentDisplayIndex;
+      if (isExpertMode) {
+          if (shuffledIndexPointer >= shuffledIndices.length) {
+              // Si ya se mostraron todas las preguntas en modo experto, re-mezclar y reiniciar
+              shuffledIndices = Array.from({length: preguntas.length}, (_, i) => i);
+              shuffleArray(shuffledIndices);
+              shuffledIndexPointer = 0;
+              // No mostrar alerta si el quiz ya ha terminado
+              if (totalAnswered < preguntas.length) { // Solo si no ha terminado el quiz completo
+                alert("Todas las preguntas aleatorias han sido mostradas. Se reinicia el ciclo.");
+              }
+          }
+          p = preguntas[shuffledIndices[shuffledIndexPointer]];
+          currentDisplayIndex = shuffledIndexPointer;
+      } else {
+          p = preguntas[currentIndex];
+          currentDisplayIndex = currentIndex;
+      }
+      
+      quizImage.src = p.imagen;
+
+      // Actualizar contador de preguntas
+      questionCounterSpan.innerText = `Pregunta ${currentDisplayIndex + 1} de ${preguntas.length}`;
+
+      // Resetear todos los selectores
+      tecnicaSelect.value = "";
+      caracteristicaSelect.innerHTML = "<option value=''>Selecciona</option>";
+      corteSelect.value = "";
+      regionSelect.value = "";
+      subregionSelect.innerHTML = "<option value=''>Selecciona</option>";
+      subregionGroup.style.display = "none";
+      organoSelect.value = "";
+      organoGroup.style.display = "none";
+      contrasteSelect.value = "";
+      esPatologicaSelect.value = "";
+      
+      // Limpiar feedback al cargar nueva pregunta
+      feedbackDiv.innerText = "";
+      feedbackDiv.className = "feedback";
+
+      if (!isExpertMode) {
+        questionSelector.value = currentIndex;
+        // Gestionar visibilidad de botones Anterior/Siguiente
+        prevQuestionBtn.disabled = currentIndex === 0;
+        nextQuestionBtn.disabled = currentIndex === preguntas.length - 1;
+      } else {
+        questionSelector.value = ""; // Desseleccionar en modo experto
+      }
+    }
+
+    function updateCaracteristicas() {
+      const tecnica = tecnicaSelect.value;
+      caracteristicaSelect.innerHTML = "<option value=''>Selecciona</option>";
+
+      caracteristicaLabel.textContent = etiquetasCaracteristicas[tecnica] || "Característica";
+
+      if (opcionesCaracteristicas[tecnica]) {
+        opcionesCaracteristicas[tecnica].forEach(opt => {
+          const option = document.createElement("option");
+          option.text = opt;
+          option.value = opt;
+          caracteristicaSelect.add(option);
+        });
+      }
+
+      corteSelect.innerHTML = "<option value=''>Selecciona</option>";
+      if (["TC", "RM", "Eco"].includes(tecnica)) {
+          corteGroup.style.display = "block";
+          let opcionesCorteActuales = (tecnica === "Eco") ? opcionesCorteEco : opcionesCorteDefault;
+          opcionesCorteActuales.forEach(opt => {
+            const option = document.createElement("option");
+            option.text = opt;
+            option.value = opt;
+            corteSelect.add(option);
+          });
+      } else {
+          corteGroup.style.display = "none";
+          corteSelect.value = "";
+      }
+
+      organoGroup.style.display = tecnica === "Eco" ? "block" : "none";
+      if (tecnica !== "Eco") {
+          organoSelect.value = "";
+      }
+    }
+
+    function updateSubregion() {
+      const region = regionSelect.value;
+      subregionSelect.innerHTML = "<option value=''>Selecciona</option>";
+      subregionGroup.style.display = "none";
+
+      let opciones = [];
+      if (region === "Miembros superiores") {
+        opciones = opcionesSubregionMiembrosSuperiores;
+        subregionGroup.style.display = "block";
+      } else if (region === "Miembros inferiores") {
+        opciones = opcionesSubregionMiembrosInferiores;
+        subregionGroup.style.display = "block";
+      }
+      opciones.forEach(opt => {
+        const option = document.createElement("option");
+        option.text = opt;
+        option.value = opt;
+        subregionSelect.add(option);
+      });
+      if (subregionGroup.style.display === "none") {
+          subregionSelect.value = "";
+      }
+    }
+
+    function comprobar() {
+      if (preguntas.length === 0) {
+        feedbackDiv.innerText = "No hay preguntas cargadas para comprobar.";
+        feedbackDiv.className = "feedback incorrecto";
+        return;
+      }
+
+      let p;
+      if (isExpertMode) {
+          p = preguntas[shuffledIndices[shuffledIndexPointer]];
+      } else {
+          p = preguntas[currentIndex];
+      }
+
+      const tecnica = tecnicaSelect.value;
+      const caracteristica = caracteristicaSelect.value;
+      const corte = corteSelect.value;
+      const region = regionSelect.value;
+      const subregion = subregionSelect.value;
+      const organo = organoSelect.value;
+      const contraste = contrasteSelect.value;
+      const esPatologica = esPatologicaSelect.value;
+
+      if (!tecnica || !caracteristica || !region || !contraste || !esPatologica) {
+        feedbackDiv.innerText = "Por favor, selecciona una opción en todos los campos obligatorios.";
+        feedbackDiv.className = "feedback incorrecto";
+        return;
+      }
+
+      if (["TC", "RM", "Eco"].includes(tecnica) && !corte) {
+        feedbackDiv.innerText = "Por favor, selecciona un 'Corte'.";
+        feedbackDiv.className = "feedback incorrecto";
+        return;
+      }
+      if (tecnica === "Eco" && !organo) {
+        feedbackDiv.innerText = "Por favor, selecciona un 'Órgano'.";
+        feedbackDiv.className = "feedback incorrecto";
+        return;
+      }
+      if ((region === "Miembros superiores" || region === "Miembros inferiores") && !subregion) {
+        feedbackDiv.innerText = "Por favor, selecciona una 'Subregión'.";
+        feedbackDiv.className = "feedback incorrecto";
+        return;
+      }
+
+      const isCorrect =
+        tecnica === p.tecnica &&
+        caracteristica === p.caracteristica &&
+        (corte === (p.corte || "")) &&
+        region === p.region &&
+        (subregion === (p.subregion || "")) &&
+        (organo === (p.organo || "")) &&
+        contraste === p.contraste &&
+        esPatologica === p.esPatologica;
+
+      totalAnswered++; // Incrementar preguntas intentadas
+
+      if (isCorrect) {
+        score++; // Incrementar puntuación si es correcto
+        feedbackDiv.innerText = "✅ ¡Correcto!";
+        feedbackDiv.className = "feedback correcto";
+      } else {
+        feedbackDiv.innerText = "❌ Alguna respuesta es incorrecta. Intenta de nuevo.";
+        feedbackDiv.className = "feedback incorrecto";
+      }
+      
+      // Deshabilitar botones de comprobación y navegación temporalmente
+      document.querySelector('button[onclick="comprobar()"]').disabled = true;
+      prevQuestionBtn.disabled = true;
+      nextQuestionBtn.disabled = true;
+
+      setTimeout(() => {
+        document.querySelector('button[onclick="comprobar()"]').disabled = false; // Habilitar de nuevo
+
+        let quizFinished = false;
+        if (isExpertMode) {
+          shuffledIndexPointer++;
+          if (shuffledIndexPointer >= preguntas.length && totalAnswered >= preguntas.length) {
+            quizFinished = true;
+          }
+        } else {
+          currentIndex++;
+          if (currentIndex >= preguntas.length) {
+            quizFinished = true;
+          }
+        }
+
+        if (quizFinished) {
+          feedbackDiv.innerText = `🎉 Has completado el quiz. Puntuación final: ${score} de ${preguntas.length}.`;
+          feedbackDiv.className = "feedback correcto";
+          // Deshabilitar todos los campos y botones al finalizar el quiz
+          tecnicaSelect.disabled = true;
+          caracteristicaSelect.disabled = true;
+          corteSelect.disabled = true;
+          regionSelect.disabled = true;
+          subregionSelect.disabled = true;
+          organoSelect.disabled = true;
+          contrasteSelect.disabled = true;
+          esPatologicaSelect.disabled = true;
+          document.querySelector('button[onclick="comprobar()"]').disabled = true;
+          prevQuestionBtn.style.display = "none";
+          nextQuestionBtn.style.display = "none";
+          questionSelectorGroup.style.display = "none"; // Ocultar selector al finalizar
+        } else {
+          loadPregunta();
+          if (!isExpertMode) {
+            populateQuestionSelector(); // Actualizar selector después de avanzar
+          }
+        }
+      }, 1500); // Dar un poco más de tiempo para ver el feedback
+    }
+
+    // Funciones de navegación (Anterior/Siguiente)
+    function goToPreviousQuestion() {
+        if (isExpertMode) return; // No permitido en modo experto
+        if (currentIndex > 0) {
+            currentIndex--;
+            loadPregunta();
+            populateQuestionSelector();
+        }
+    }
+
+    function goToNextQuestion() {
+        if (isExpertMode) return; // No permitido en modo experto
+        if (currentIndex < preguntas.length - 1) {
+            currentIndex++;
+            loadPregunta();
+            populateQuestionSelector();
+        }
+    }
+
+
+    // Event Listeners
+    tecnicaSelect.addEventListener("change", updateCaracteristicas);
+    regionSelect.addEventListener("change", updateSubregion);
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Inicializa los botones de modo y navegación
+        normalModeBtn.disabled = true; // Deshabilitados hasta cargar preguntas
+        expertModeBtn.disabled = true; // Deshabilitados hasta cargar preguntas
+        prevQuestionBtn.style.display = "none"; // Ocultos al inicio
+        nextQuestionBtn.style.display = "none"; // Ocultos al inicio
+        questionSelectorGroup.style.display = "none"; // Oculto al inicio
+
+        loadPregunta(); // Mostrar el mensaje inicial de "cargar preguntas"
+    });
+  </script>
+</body>
+</html>
